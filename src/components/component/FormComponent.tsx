@@ -10,16 +10,41 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "../ui/textarea";
 import { FormField } from "./FormField";
 import { useForm } from "react-hook-form";
-import { formDynamicsSender, formDynamicsReceiver } from "@/json/formJson";
+import { formDynamicsReceiver } from "@/json/formJson";
 import { FormArticleComponent } from "./FormArticleComponent";
-import { ArticleInterface } from "@/types/FormTypes";
 import { useState } from "react";
-import { InVoicePDF, InvoiceComponent } from "../pdf/InVoicePDF";
+import { Invoice, InVoicePDF } from "../pdf/InVoicePDF";
+import useArticles from "@/hooks/useArticles";
+import { useDate } from "@/hooks/useDate";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { DataForm } from "@/types/FormTypes";
 
 export const FormComponent = () => {
   const [screenDisplay, setScreenDisplay] = useState<Boolean>(false);
+  const { formattedDate } = useDate();
 
-  const [formState, setformState] = useState({
+  // const formValidation = z.object({
+  //   nameSender: z.string(),
+  //   emailSender: z.string().email("Debe ser un correo."),
+  //   jobSender: z.string(),
+  //   streetSender: z.string(),
+  //   stateSender: z.string(),
+  //   citySender: z.string(),
+  //   countrySender: z.string(),
+  //   nameReceiver: z.string(),
+  //   emailReceiver: z.string(),
+  //   streetReceiver: z.string(),
+  //   stateReceiver: z.string(),
+  //   cityReceiver: z.string(),
+  //   countryReceiver: z.string(),
+  //   serviceDescription: z.string(),
+  //   totalAmount: z.number(),
+  //   date: z.string().date(),
+  //   // inVoiceNumber: generateRandomNumber(8),
+  // });
+
+  const [formState, setformState] = useState<Invoice>({
     nameSender: "",
     emailSender: "",
     jobSender: "",
@@ -35,17 +60,27 @@ export const FormComponent = () => {
     countryReceiver: "",
     serviceDescription: "",
     articles: [],
+    totalAmount: 0,
+    date: "",
+    inVoiceNumber: "",
   });
 
-  const { handleSubmit, control, register, setValue, watch } = useForm<any>({
+  const {
+    handleSubmit,
+    control,
+    register,
+    setValue,
+    watch,
+    // formState: { errors },
+  } = useForm<any>({
     defaultValues: {
-      nameSender: "",
-      emailSender: "",
-      jobSender: "",
-      streetSender: "",
-      stateSender: "",
-      citySender: "",
-      countrySender: "",
+      nameSender: "Efren Cabrera",
+      emailSender: "efrecabrera64@gmail.com",
+      jobSender: "Electricista",
+      streetSender: "Urb. Desarrollo camburito",
+      stateSender: "Portuguesa",
+      citySender: "Araure",
+      countrySender: "Venezuela",
       nameReceiver: "",
       emailReceiver: "",
       streetReceiver: "",
@@ -55,45 +90,49 @@ export const FormComponent = () => {
       serviceDescription: "",
       articles: [{ id: "1", nameItem: "", quantity: "", price: "" }],
     },
+    // resolver: zodResolver(formValidation),
   });
 
-  const onSubmit = (data: any) => {
-    // setScreenDisplay(true);
-    setformState(data);
-    console.log(formState);
-  };
+  const { handleChangeArticle, handleRemoveArticle } = useArticles(
+    watch,
+    setValue
+  );
 
-  const handleChangeArticle = (article: ArticleInterface) => {
-    const articleExist =
-      watch().articles.find((e: ArticleInterface) => e.id === article.id) !==
-      undefined;
-    if (articleExist) {
-      setValue(
-        "articles",
-        watch().articles.map((e: ArticleInterface) =>
-          e.id === article.id ? article : e
-        )
-      );
-    } else {
-      setValue("articles", [...watch().articles, article]);
-    }
-  };
+  const onSubmit = (data: Invoice) => {
+    const elementArray: number[] = [];
 
-  const handleRemoveArticle = (article: ArticleInterface) => {
-    setValue(
-      "articles",
-      watch().articles.filter((e: ArticleInterface) => e.id !== article.id)
+    const arrayArticles = (data: Invoice) => {
+      for (let index = 0; index < data.articles.length; index++) {
+        let productPrice = Number(data.articles[index].price);
+        let productQuantity = Number(data.articles[index].quantity);
+        let totalAmount = productPrice * productQuantity;
+        elementArray.push(totalAmount);
+      }
+    };
+
+    arrayArticles(data);
+
+    const totalAmountInvoice = elementArray.reduce(
+      (accumulator, currentValue) => {
+        return accumulator + currentValue;
+      },
+      0
     );
-  };
-  const invoice = {
-    date: "2024-07-26",
-    number: "12345",
-    items: [
-      { name: "Example Item 1", quantity: 2, price: "$10.00", total: "$20.00" },
-      { name: "Example Item 2", quantity: 1, price: "$15.00", total: "$15.00" },
-      // Add more items as needed
-    ],
-    total: "$35.00",
+
+    const generateRandomNumber = (length: number) => {
+      const randomNumber = Math.floor(Math.random() * Math.pow(10, length));
+      return String(randomNumber).padStart(length, "0");
+    };
+
+    const random8DigitNumber = generateRandomNumber(8);
+
+    setScreenDisplay(true);
+    setformState({
+      ...data,
+      totalAmount: totalAmountInvoice,
+      date: formattedDate,
+      inVoiceNumber: random8DigitNumber,
+    });
   };
 
   return (
@@ -109,16 +148,6 @@ export const FormComponent = () => {
             </CardHeader>
             <CardContent>
               <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-                {/* DATOS DEL EMISOR */}
-                <CardTitle className="text-xl">Datos del emisor</CardTitle>
-                <div className="grid grid-cols-1 gap-6">
-                  {formDynamicsSender.map((field, index) => (
-                    <div key={index}>
-                      <FormField {...field} control={control} />
-                    </div>
-                  ))}
-                </div>
-
                 {/* DATOS DEL RECEPTOR */}
                 <CardTitle className="text-xl">Datos del receptor</CardTitle>
                 <div className="grid grid-cols-1 gap-6">
@@ -162,7 +191,7 @@ export const FormComponent = () => {
           </Card>
         </div>
       ) : (
-        <InVoicePDF invoice={invoice} />
+        <InVoicePDF {...formState} />
       )}
     </>
   );

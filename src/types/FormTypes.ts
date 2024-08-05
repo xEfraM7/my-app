@@ -5,9 +5,10 @@ export type ArticleInterface = {
   nameItem: string;
   quantity: string;
   price: string;
+  total:string
 };
 
-export type FormData = {
+export type DataForm = {
   nameSender: string;
   emailSender: string;
   jobSender: string;
@@ -28,7 +29,7 @@ export type FormData = {
 export type FormFieldProps = {
   type: string;
   placeholder: string;
-  name: string;
+  name: ValidFieldNames | string;
   error: FieldError | undefined;
   label?: string;
   valueAsNumber?: boolean;

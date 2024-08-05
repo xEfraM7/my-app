@@ -14,11 +14,18 @@ import { Button } from "../ui/button";
 import { ArticleInterface } from "@/types/FormTypes";
 
 interface Props {
-  handleChangeArticle: (arg: ArticleInterface) => void;
-  handleRemoveArticle: (arg: ArticleInterface) => void;
-  articles: ArticleInterface[];
+  handleChangeArticle: (arg: Article) => void;
+  handleRemoveArticle: (arg: Article) => void;
+  articles: Article[];
   control: any;
 }
+
+type Article = {
+  id: string;
+  nameItem: string;
+  quantity: string;
+  price: string;
+};
 
 export const FormArticleComponent = ({
   handleChangeArticle,
@@ -36,7 +43,7 @@ export const FormArticleComponent = ({
   };
 
   const removeArticle = (id: string) => {
-    const articleToRemove = articles.find((e: ArticleInterface) => e.id === id);
+    const articleToRemove = articles.find((e: Article) => e.id === id);
     if (articleToRemove !== undefined) {
       handleRemoveArticle(articleToRemove);
     }
@@ -47,7 +54,7 @@ export const FormArticleComponent = ({
     field: "nameItem" | "quantity" | "price",
     value: any
   ) => {
-    const updatedArticle = articles.find((e: ArticleInterface) => e.id === id);
+    const updatedArticle = articles.find((e: Article) => e.id === id);
     if (updatedArticle !== undefined) {
       updatedArticle[field] = value;
       handleChangeArticle(updatedArticle);
@@ -175,22 +182,3 @@ function TrashIcon(props: any) {
   );
 }
 
-function XIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  );
-}
