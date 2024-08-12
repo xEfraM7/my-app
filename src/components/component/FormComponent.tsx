@@ -213,7 +213,7 @@ export const FormComponent = () => {
           <PDFViewer className="h-screen w-full hidden lg:flex">
             <InVoicePDF {...formState} />
           </PDFViewer>
-          <Button onClick={handleReload} className="absolute top-0 left-0 bottom-0 right-0 m-auto w-1/2">Recargar pagina!</Button>
+          <Button onClick={handleReload} className="absolute top-0 left-0 bottom-0 right-0 m-auto w-1/2 lg:hidden">Recargar pagina!</Button>
         </>
       )}
     </>
