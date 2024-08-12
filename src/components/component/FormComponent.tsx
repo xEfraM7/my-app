@@ -90,7 +90,7 @@ export const FormComponent = () => {
       cityReceiver: "",
       countryReceiver: "",
       serviceDescription: "",
-      articles: [{ id: "1", nameItem: "", quantity: "", price: "" }],
+      articles: [],
     },
     // resolver: zodResolver(formValidation),
   });
