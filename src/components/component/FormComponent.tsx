@@ -19,6 +19,8 @@ import { useDate } from "@/hooks/useDate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { DataForm } from "@/types/FormTypes";
+import saveAs from "file-saver";
+import { pdf, PDFViewer } from "@react-pdf/renderer";
 
 export const FormComponent = () => {
   const [screenDisplay, setScreenDisplay] = useState<Boolean>(false);
@@ -93,10 +95,20 @@ export const FormComponent = () => {
     // resolver: zodResolver(formValidation),
   });
 
+  const handleReload = () => {
+    location.reload();
+  };
+
   const { handleChangeArticle, handleRemoveArticle } = useArticles(
     watch,
     setValue
   );
+
+  const saveFile = (filename: string, state: Invoice) => {
+    pdf(<InVoicePDF {...state} />)
+      .toBlob()
+      .then((blob) => saveAs(blob, `${filename}.pdf`));
+  };
 
   const onSubmit = (data: Invoice) => {
     const elementArray: number[] = [];
@@ -128,6 +140,12 @@ export const FormComponent = () => {
 
     setScreenDisplay(true);
     setformState({
+      ...data,
+      totalAmount: totalAmountInvoice,
+      date: formattedDate,
+      inVoiceNumber: random8DigitNumber,
+    });
+    saveFile(formState.inVoiceNumber, {
       ...data,
       totalAmount: totalAmountInvoice,
       date: formattedDate,
@@ -191,7 +209,12 @@ export const FormComponent = () => {
           </Card>
         </div>
       ) : (
-        <InVoicePDF {...formState} />
+        <>
+          <PDFViewer className="h-screen w-full hidden lg:flex">
+            <InVoicePDF {...formState} />
+          </PDFViewer>
+          <Button onClick={handleReload} className="absolute top-0 left-0 bottom-0 right-0 m-auto w-1/2">Recargar pagina!</Button>
+        </>
       )}
     </>
   );
